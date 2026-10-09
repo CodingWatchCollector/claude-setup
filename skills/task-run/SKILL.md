@@ -76,7 +76,7 @@ After every step, append one line to the Log section of `status.md`: date, step,
    FINDINGS_EOF
    ```
    If it fails (missing header, wrong round), that is a reviewer failure: see Retry.
-4. `gate after-review <n>`. It prints the verdict. Exit 1: see Retry.
+4. `gate after-review <n>`. It prints the verdict and writes `rounds: <n>` into the Notes cell of the `run:review` row. Exit 1: see Retry.
 5. Tell the user in two or three lines: verdict, number of open blocking findings, their titles. Then continue the loop.
 
 ## next: done

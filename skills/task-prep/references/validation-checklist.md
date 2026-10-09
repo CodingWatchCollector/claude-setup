@@ -11,13 +11,14 @@ You are validating a plan written by someone else. Your job is to find what is m
 5. **API contract.** If any endpoint, DTO, shared type or Swagger schema changes, the contract section lists request, response, status codes, error format, frontend consumers and backward compatibility. If the section says "none", check the affected areas table agrees.
 6. **Lessons addressed.** Every matched lesson has a row in "Lessons applied" saying how the plan avoids it, or why it does not apply.
 7. **Regression set exists.** Listed spec files exist in the repository and cover the touched modules.
-8. **Definition of done runs.** Every command runs inside the repository and maps to an existing package.json script or a valid CLI call.
+8. **Definition of done runs.** Every command runs inside the repository and maps to an existing package.json script or a valid CLI call. Dry-run every command at `base_commit` (read-only, per check 13). A `grep` whose target is a directory uses `-r`. A "no output expected" check must also expect exit status 1 (no match): exit status 2 or any stderr output fails the check, because a command that errors prints nothing and looks like a pass.
 9. **Size.** More than 8 production files or more than 7 criteria: propose a split into smaller tasks.
 10. **Open questions.** Anything that decides business behavior and is not stated in the task is an open question, marked blocking. Assumptions about business rules count as blocking questions.
 11. **Acceptance tester decision.** "needed: yes" only if the plan defines behavior at an external boundary (endpoint contract, user-visible flow) AND the repository has infrastructure for such tests (for example `test/jest-e2e.json`, supertest in devDependencies, `playwright.config.*`, `cypress.config.*`). Otherwise "no".
 12. **Promises are covered.** Every verifiable statement in the Goal and in the plan's spec sections (schema tables with constraints and FK actions, catalogues, lists of mandatory content) maps to an acceptance criterion, or is listed under Assumptions as deliberately untested, with the reason.
 13. **Commands are read-only.** Every command in the definition of done and in any check the plan asks the reviewer to run leaves the repository untouched, git index included: no `git add` (not even `-N`), `stash`, `checkout`, `reset`, `commit`, `npm install`. To search added lines, the plan uses the read-only form from the review template.
 14. **Strict mode only.** Risks section has a pre-mortem with 3 concrete failure scenarios and how the plan or tests catch each one.
+15. **Commands outside the repo root.** Any command the plan runs outside the repository root (scratch copies, tmp dirs, mutation recipes) calls tool binaries by absolute path (`<repo>/node_modules/.bin/<tool>`), never through `pnpm exec` or `npx`: in a pnpm workspace they fail in a copied directory. The recipe's baseline step must abort loudly when the runner itself errors, so a broken runner is never reported as a killed mutant.
 
 ## Output format
 

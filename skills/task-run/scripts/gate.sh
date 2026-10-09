@@ -51,6 +51,14 @@ findings() {
     /^status:/{ st=$2 }
     END{ flush() }' "$FD"
 }
+# Writes the Notes cell of a status table row: set_notes <step> <text>
+set_notes() {
+  TMP="$(mktemp)"
+  awk -F'|' -v OFS='|' -v s="$1" -v t="$2" '
+    { k=$2; gsub(/[[:space:]]/,"",k) }
+    k==s && NF>=4 { $4=" " t " " }
+    { print }' "$ST" > "$TMP" && mv "$TMP" "$ST"
+}
 rules_value() { section "Implementer report" | grep -E '^rules decided:' | head -1 | sed -E 's/^rules decided:[[:space:]]*//'; }
 rule_ids() { section "Implementer report" | grep -oE '^- R-[0-9]+' | sed 's/^- //'; }
 # Rule IDs of the report not confirmed for round $1 in status.md
@@ -209,6 +217,7 @@ after-review)
   N="$ARG"; [ -n "$N" ] || { echo "FAIL after-review needs a round number"; exit 2; }
   [ -f "$FD" ] || { bad "findings.md missing"; finish; }
   R="$(review_round)"; [ "$R" = "$N" ] && ok "findings round $R" || bad "findings latest round is $R, expected $N"
+  [ "$R" = "$N" ] && set_notes run:review "rounds: $N"
   BLK="$(last_round_block)"
   VC="$(echo "$BLK" | grep -cE '^verdict:[[:space:]]*(APPROVE|CHANGES_REQUESTED)[[:space:]]*$' || true)"
   [ "$VC" = "1" ] && ok "one verdict in round $N" || bad "round $N must have exactly one verdict line (APPROVE or CHANGES_REQUESTED), found $VC"

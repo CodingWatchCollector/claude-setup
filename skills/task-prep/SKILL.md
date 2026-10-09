@@ -115,7 +115,7 @@ Definition of done must contain real commands that run inside the repository (`c
 
 Start the `task-plan-reviewer` subagent with the Agent tool (general-purpose if it is missing). Pass it only the absolute paths to `plan.md`, the repository and the matched lesson files, plus the full text of `references/validation-checklist.md`. It must not see this conversation: the author of a plan is bad at seeing its gaps.
 
-On FAIL: revise the plan (small fixes directly, structural ones through the Step 3 route again) and re-validate. Maximum 3 rounds, then stop and show the user the remaining issues. Record rounds in `status.md`.
+On FAIL: revise the plan (small fixes directly, structural ones through the Step 3 route again) and re-validate. Maximum 3 rounds, then stop and show the user the remaining issues. After each validation round, set the Notes cell of the `prep:validation` row in `status.md` to `rounds: <n>`.
 
 ## Step 5 - Human approval
 

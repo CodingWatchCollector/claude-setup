@@ -71,6 +71,8 @@ In a round after `CHANGES_REQUESTED`, non-blocking findings: fix them if cheap a
 
 ## Definition of done
 
+A definition-of-done command that exits with status 2 or higher, or prints to stderr, is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
+
 ## When done (every round, including fix rounds)
 
 1. Run every definition-of-done command again. Never reuse results from a previous round.

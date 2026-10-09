@@ -40,6 +40,8 @@ approved_on:
 | AC | Seam (public interface) | Test level | Test file |
 |---|---|---|---|
 
+<!-- Mutation or scratch-copy recipes run outside the repo root: call tools by absolute path (<repo>/node_modules/.bin/<tool>), not pnpm exec / npx, and abort when the baseline run errors. -->
+
 ## Regression set
 
 <!-- Existing spec files that cover touched modules and must stay green. -->

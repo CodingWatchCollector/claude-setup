@@ -60,6 +60,8 @@ Every command you run must leave the repository untouched, the git index include
 
 ## Definition of done
 
+A definition-of-done command that exits with status 2 or higher, or prints to stderr, is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
+
 ## Output
 
 Return the review round as your final message, with nothing before or after it. The orchestrator appends it to `<TASK_DIR>/findings.md` verbatim. Continue finding numbers across rounds (F-1, F-2 in round 1, F-3 in round 2, ...). The header lines are parsed by scripts, keep their format exactly:
