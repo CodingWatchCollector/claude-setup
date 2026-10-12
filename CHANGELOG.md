@@ -3,6 +3,10 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.2.1
+
+- Process backlog P-005: `retro.sh data` reports no API contract when the plan's contract section starts with "none", even if a reason follows on the same or the next lines.
+
 ## 0.2.0
 
 - Process backlog P-001: `gate.sh after-review` writes `rounds: <n>` into the run:review row; task-prep records validation rounds in prep:validation.

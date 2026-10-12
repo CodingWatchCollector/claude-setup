@@ -63,8 +63,9 @@ data)
   echo "review_rounds: ${RR:-0}"
   echo "verdict: $(verdict_of "$FD")"
   echo "retro: $(state "$ST" retro)"
-  C="$(sed -n '/^## API contract/,/^## /p' "$PL" 2>/dev/null | grep -vE '^## |^<!--|^[[:space:]]*$|^- [A-Za-z /]+:[[:space:]]*$' | grep -viE '^[[:space:]]*none[[:space:]]*$' | head -1)"
-  [ -n "$C" ] && echo "api_contract: yes" || echo "api_contract: none"
+  C="$(sed -n '/^## API contract/,/^## /p' "$PL" 2>/dev/null | grep -vE '^## |^<!--|^[[:space:]]*$|^- [A-Za-z /]+:[[:space:]]*$' | head -1)"
+  # A section whose first line starts with "none" has no contract, even if a reason follows.
+  [ -n "$C" ] && ! printf '%s\n' "$C" | grep -qiE '^[[:space:]]*none\b' && echo "api_contract: yes" || echo "api_contract: none"
   echo
   printf 'id\tround\tseverity\tclass\tsource\taxis\tstatus\tlocation\tproblem\n'
   findings_tsv ;;
