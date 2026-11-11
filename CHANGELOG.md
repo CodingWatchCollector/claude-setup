@@ -3,6 +3,11 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.3.0
+
+- task-retro reads a digest of the subagent transcripts (`retro.sh transcripts`, backed by `scripts/transcripts.py`) and looks for friction the reviewer never sees: long search streaks, failed commands, missing information, repeated calls. Candidates go to the process backlog, to a new `env` bucket (environment drafts in the task folder for the user to take to the repo), or to lessons.
+- task-retro proposes an automated check (linter rule, pre-commit hook, CI job) instead of a lesson when a mistake is mechanical.
+
 ## 0.2.1
 
 - Process backlog P-005: `retro.sh data` reports no API contract when the plan's contract section starts with "none", even if a reason follows on the same or the next lines.

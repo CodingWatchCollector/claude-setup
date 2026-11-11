@@ -9,11 +9,12 @@
 #   record-metrics   writes or replaces this task's line in .agents/metrics.csv
 #   set-done         marks the retro row of the status table as done
 #   pending          lists tasks of <project> with an APPROVE verdict and retro not done (TASK-ID: use -)
+#   transcripts      digest of the subagent transcripts for this task: tool counts, failed calls, search streaks
 # Run from the workspace root or below it. Tolerates older findings formats.
 
 set -u
 PROJECT="${1:-}"; ID="${2:-}"; CMD="${3:-}"; ARG="${4:-}"
-if [ -z "$PROJECT" ] || [ -z "$ID" ] || [ -z "$CMD" ]; then sed -n '2,13p' "$0"; exit 2; fi
+if [ -z "$PROJECT" ] || [ -z "$ID" ] || [ -z "$CMD" ]; then sed -n '2,14p' "$0"; exit 2; fi
 
 WS="$(pwd)"
 while [ "$WS" != "/" ] && [ ! -d "$WS/.agents/tasks" ]; do WS="$(dirname "$WS")"; done
@@ -126,5 +127,8 @@ pending)
     basename "$d"
   done ;;
 
-*) sed -n '2,13p' "$0"; exit 2 ;;
+transcripts)
+  python3 -I "$(dirname "$0")/transcripts.py" "$WS" "$PROJECT" "$ID" ;;
+
+*) sed -n '2,14p' "$0"; exit 2 ;;
 esac

@@ -1,6 +1,6 @@
 ---
 name: task-retro
-description: Post-task retrospective for tasks executed with task-prep and task-run in a multi-repository workspace. Reads the review findings of one or more approved tasks, records metrics, turns recurring code mistakes into lessons for future planning, routes workflow problems to a process backlog, surfaces findings left open after approval, and checks API contract follow-through. Proposes every change and writes only what the user confirms. Use when the user runs /task-retro or asks for a retro on finished tasks. Never touches repositories.
+description: Post-task retrospective for tasks executed with task-prep and task-run in a multi-repository workspace. Reads the review findings of one or more approved tasks, records metrics, turns recurring code mistakes into lessons for future planning, routes workflow problems to a process backlog, reads a digest of the subagent transcripts for friction the reviewer never sees (slow searches, failed commands, missing information) and proposes environment fixes, prefers automated checks over lessons for mechanical mistakes, surfaces findings left open after approval, and checks API contract follow-through. Proposes every change and writes only what the user confirms. Use when the user runs /task-retro or asks for a retro on finished tasks. Never touches repositories.
 ---
 
 # task-retro
@@ -35,6 +35,7 @@ The goal is that the next plan knows about this task's mistakes. Lessons are onl
 - `next-id <folder>`, `next-pid`: free IDs.
 - `record-metrics`, `set-done`: the two writes the script does itself.
 - `pending` (with `-` as TASK-ID): tasks waiting for a retro.
+- `transcripts`: a compact digest of the tester, implementer, reviewer and plan-review subagent transcripts for the task (tool call counts, failed calls with their errors, the longest run of search calls, calls repeated 3+ times). Read this, never the raw transcripts.
 
 Lesson format: `<workspace>/.agents/lessons/README.md`. Backlog format: `references/process-backlog-format.md`.
 
@@ -45,7 +46,9 @@ Lesson format: `<workspace>/.agents/lessons/README.md`. Backlog format: `referen
 3. `retro.sh ... record-metrics` for each task.
 4. Load `lessons-index` and `backlog-index`.
 
-Read `plan.md` and the full text of a finding only when a decision below needs it. Do not read the code or the diff, except for the contract check in Step 3.
+5. `retro.sh ... transcripts` for each task. `none` is normal for tasks run in manual mode; skip Step 2b for them.
+
+Read `plan.md` and the full text of a finding only when a decision below needs it. Do not read the code or the diff, except for the contract check in Step 3. Open a raw transcript only to confirm a friction signal from the digest, and then only around the calls it names.
 
 ## Step 2 - Classify every finding
 
@@ -57,6 +60,21 @@ Apply the rules in order. A finding can land in two buckets (an open pattern fin
 4. **Lesson candidate.** `class: pattern`, or a one-off that clearly matches an existing lesson. Check the reviewer's label: a pattern is something likely to happen again in another task of this project. A mistake tied to one specific file's content is a one-off whatever the label says.
 5. **Skip.** Everything else. One-offs that were fixed teach nothing new.
 
+**Mechanical or judgement.** For every lesson candidate, decide whether the mistake is mechanical: a fixed syntactic pattern, a banned API, an import shape, a file-location rule. A mechanical mistake gets an automated check proposal (a rule in the repo's own linter, a pre-commit hook or a CI job, whichever the repo already has), not a lesson: a check catches it every time, a lesson only when task-prep happens to match it. Look at the repo's existing lint and check scripts and CI workflow first; a check that exists but is not wired up or is broken is the finding. Only judgement calls stay lessons.
+
+## Step 2b - Friction from transcripts
+
+The reviewer sees the diff, not the struggle behind it. Scan the `transcripts` digest for these signals:
+
+- **Navigation.** A search streak of 8+ calls, or the same file read repeatedly. Ask what the agent was looking for and whether a pointer in the brief template, a lesson trigger or the repo's AGENTS.md would have saved the search.
+- **Broken or unknown commands.** Failed calls that come from the environment, not the task: wrong test command, missing dependency, a script that needs a flag, a permission denial. These are usually brief-template or plan gaps ("plan did not name the test command").
+- **Missing checks.** The agent made a mistake that a linter, type check or test caught late or not at all. Same rule as above: propose the check. A repo with no pre-commit hook and no CI running its lint/typecheck/test is itself a finding.
+- **Information access.** The agent needed something it could not get (dev server logs, a third-party dashboard, a file outside the brief) and guessed or worked around it.
+- **Tool economy.** Calls repeated 3+ times, huge outputs, or a costly pattern a small script would replace.
+- **Ignored or no-op instructions.** The agent did something the brief told it not to, or a brief section never changed what the agent did. Either the instruction is unclear or it is dead weight.
+
+Every signal becomes one candidate with a bucket: `process` (a change to a task-* skill, template, agent or script: goes to the process backlog), `env` (a change in the repository's environment: check, AGENTS.md pointer, script: becomes a draft the user takes to the repo through a PR, like ADR drafts), or `lesson` (only if it is a project-specific planning situation). One bad call in a long clean run is noise; skip it.
+
 ## Step 3 - Build proposals
 
 **Lessons.** For each candidate, compare with `lessons-index`:
@@ -66,6 +84,8 @@ Apply the rules in order. A finding can land in two buckets (an open pattern fin
 - Folder: the project's folder. Propose `_shared` only if an equivalent lesson already exists in another project's folder; then propose moving it there with both sources.
 
 **Process backlog.** Match against `backlog-index`: increment `seen` or propose a new entry with a concrete proposal (which file of which skill, what to change).
+
+**Environment drafts.** For each `env` candidate: the repository, the file to add or change, and the exact change (lint rule config, hook, CI job, AGENTS.md pointer line). Written to `<task dir>/env-draft-<slug>.md`, never into the repository.
 
 **Leftovers.** List each open finding with one line and a recommended action:
 - `fix`: worth doing now. Suggest a small follow-up task through task-prep, with the findings as its input.
@@ -83,16 +103,16 @@ Show one numbered table for all tasks:
 | # | Task | Finding | Bucket | Proposal |
 |---|---|---|---|---|
 
-Then the full text of each proposed new lesson and backlog entry below the table. The user approves all, or approves, edits or rejects by number. Nothing is written before that answer.
+Bucket is one of `lesson`, `process`, `env`, `leftover`, `adr`. Transcript candidates use `T-<n>` in the Finding column, with the agent and round. Then the full text of each proposed new lesson, backlog entry and environment draft below the table. The user approves all, or approves, edits or rejects by number. Nothing is written before that answer.
 
 ## Step 5 - Write
 
 1. Lessons: edit existing entries or append new ones to the right file of the folder (create the file by area, for example `tests.md`, `migrations.md`, if none fits). Use `next-id` for new IDs.
 2. Process backlog: append or update `<workspace>/.agents/process-backlog.md`, creating it with a one-line header if missing. Use `next-pid`.
 3. Leftovers: under each finding in `findings.md`, add `decision (retro, <date>): fix | ticket | accept - <one line>`. Do not change its `status`.
-4. ADR drafts, if approved, in the task folder.
+4. ADR drafts and environment drafts, if approved, in the task folder.
 5. `retro.sh ... set-done` for each task, and one line in the status Log.
 
 ## Step 6 - Report
 
-Short summary: lessons added or updated (with IDs), backlog entries, leftovers by decision, and the metrics lines recorded. If leftovers are marked `fix`, give the exact `/task-prep` command for the follow-up task. If the backlog now has entries with `seen` of 2 or more, point them out: those are the workflow changes worth making first.
+Short summary: lessons added or updated (with IDs), backlog entries, environment drafts (with their repository), leftovers by decision, and the metrics lines recorded. If leftovers are marked `fix`, give the exact `/task-prep` command for the follow-up task. If the backlog now has entries with `seen` of 2 or more, point them out: those are the workflow changes worth making first.
