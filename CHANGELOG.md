@@ -3,6 +3,11 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.5.0
+
+- New hook `hooks/session-title.sh` (UserPromptSubmit): names the session after the first task-* command typed in it, keeping only the command and its `<project> <TASK-ID>` arguments: `/task-prep fitness-tracker mvp-a <task text> --strict` becomes `/task-prep fitness-tracker mvp-a`. Later prompts keep that name. Per-session markers live in `${XDG_STATE_HOME:-~/.local/state}/claude-session-title/`.
+- install.sh links `hooks/*.sh` into `~/.claude/hooks/` and registers the hook in `settings.json` with jq, once, after a `.bak-<timestamp>` backup. install.sh now needs jq.
+
 ## 0.4.0
 
 - New skill task-manual-review: turns the user's review comments into findings in the task-reviewer format and appends them to `findings.md` as `## Manual review (round <n>)` on the latest round, through `scripts/manual.sh` (validates fields, continues F-ids, refuses when an implementation round is ahead of the review). A blocking manual finding after APPROVE adds `verdict: CHANGES_REQUESTED`, so `gate next` starts a fix round. Findings carry `origin: manual`.

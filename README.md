@@ -11,14 +11,15 @@ It also includes `unslop` (removes AI writing patterns from prose) and `wiki` (a
 
 ## What's inside
 
-- `skills/`, `agents/`: linked into `~/.claude/`
+- `skills/`, `agents/`, `hooks/`: linked into `~/.claude/`
+- `hooks/session-title.sh`: names a session after the first task-* command in it, e.g. `/task-prep fitness-tracker mvp-a`; install.sh registers it in `settings.json`
 - `VERSION`, `CHANGELOG.md`: bump both with every change
 
 ## Install or update (each machine)
 
     git pull && bash install.sh
 
-Existing non-matching files are moved aside as `*.bak-<timestamp>`, not overwritten.
+Needs `jq`. Existing non-matching files are moved aside as `*.bak-<timestamp>`, not overwritten; `settings.json` is backed up the same way before the hook entry is added.
 Override the Claude folder with `CLAUDE_DIR` (default `~/.claude`).
 
 ## Changing things
