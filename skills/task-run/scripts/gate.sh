@@ -73,10 +73,19 @@ open_nb_in_round() { findings | awk -v r="$1" '$4==r && $2=="non-blocking" && $3
 repo_state_hash() {
   ( cd "$REPO" && { git diff "$BASE"; git ls-files --others --exclude-standard -z | xargs -0 -I{} sh -c 'echo "== {}"; cat "{}"'; } ) | git hash-object --stdin
 }
+# Untracked tool files: "visible" ones git would show (they block), "ignored" ones git
+# ignores via .gitignore or the global excludes (they cannot reach a commit or the diff).
 tool_files() {
   for f in CLAUDE.md .claude .agents .omc; do
-    if [ -e "$REPO/$f" ] && ! git -C "$REPO" ls-files --error-unmatch "$f" >/dev/null 2>&1; then echo "$f"; fi
+    [ -e "$REPO/$f" ] || continue
+    git -C "$REPO" ls-files --error-unmatch "$f" >/dev/null 2>&1 && continue
+    if git -C "$REPO" check-ignore -q "$f"; then [ "$1" = ignored ] && echo "$f"
+    else [ "$1" = visible ] && echo "$f"; fi
   done
+}
+check_tool_files() {
+  TF="$(tool_files visible)"; [ -z "$TF" ] && ok "no tool files in repo" || bad "tool files in repo: $(echo $TF) (not ignored by git: delete them or add them to .gitignore)"
+  TI="$(tool_files ignored)"; [ -z "$TI" ] || warn "ignored tool files in repo: $(echo $TI)"
 }
 changed_files() { { git -C "$REPO" diff --name-only "$BASE" -- ; git -C "$REPO" ls-files --others --exclude-standard; } | sort -u; }
 
@@ -95,7 +104,7 @@ start)
   if [ -n "$BASE" ] && git -C "$REPO" cat-file -e "$BASE^{commit}" 2>/dev/null; then ok "base_commit $BASE"; else bad "base_commit invalid"; fi
   LEFT="$(grep -lE '<TASK-ID>|<PROJECT>|<REPO>|<TASK_DIR>|<TDD_SKILL>|<REVIEW_SKILL>|<sha>' "$DIR"/context-*.md 2>/dev/null)"
   [ -z "$LEFT" ] && ok "no placeholders in context files" || bad "placeholders left in: $(echo $LEFT | xargs -n1 basename | tr '\n' ' ')"
-  TF="$(tool_files)"; [ -z "$TF" ] && ok "no tool files in repo" || bad "tool files in repo: $(echo $TF)"
+  check_tool_files
   N="$(changed_files | grep -c . || true)"; [ "$N" = "0" ] && ok "repo unchanged since base_commit" || warn "$N files changed since base_commit (fine when resuming)"
   USER_AG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents"; NEEDED="task-implementer task-reviewer"
   [ -s "$DIR/context-tests.md" ] && NEEDED="task-acceptance-tester $NEEDED"
@@ -187,7 +196,7 @@ after-impl)
     [ -z "$UR" ] && ok "rules decided, all confirmed by the user" || need "rules decided without a plan decision, the user must confirm or reject: $UR"
   fi
   [ -n "$(changed_files)" ] && ok "repo has changes since base_commit" || bad "no changes in repo since base_commit"
-  TF="$(tool_files)"; [ -z "$TF" ] && ok "no tool files in repo" || bad "tool files in repo: $(echo $TF)"
+  check_tool_files
   PAT='(\b(it|test|describe)\.(skip|only)\(|\b(xit|xdescribe|xtest|fit|fdescribe)\()'
   FOCUS="$( { git -C "$REPO" diff "$BASE" | grep -E "^\+.*$PAT"; git -C "$REPO" ls-files --others --exclude-standard | while read -r f; do grep -HnE "$PAT" "$REPO/$f" 2>/dev/null; done; } || true)"
   [ -z "$FOCUS" ] && ok "no skipped or focused tests added" || { bad "skipped or focused tests added:"; echo "$FOCUS" | head -5 | sed 's/^/     /'; }

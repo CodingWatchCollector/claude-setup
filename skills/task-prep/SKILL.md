@@ -56,7 +56,7 @@ If the task dir already exists, read its `status.md` and resume from the first s
 1. Find the workspace root (see above). Create `.agents/lessons/` and `.agents/tasks/` if missing, and copy `references/lessons-format.md` to `.agents/lessons/README.md` if missing.
 2. Run `bash <this skill's folder>/scripts/resolve-repo.sh <repo path>`. It prints project, repo, main_repo, worktree, branch, head, uncommitted count and tool files found inside the repository.
 3. Uncommitted changes make `base_commit` and the later review diff unreliable: warn and ask whether to continue.
-4. Tool files inside the repository (`.claude/`, `.agents/`, `.omc/`, `CLAUDE.md` that git does not track): warn, they break the "repositories stay clean" rule. Remember which ones already existed, so later steps can tell what they created.
+4. Tool files inside the repository (`.claude/`, `.agents/`, `.omc/`, `CLAUDE.md` that git does not track): warn, they break the "repositories stay clean" rule, and `check-task.sh` and the task-run gates fail on them. Ignored ones (`ignored_tool_files_in_repo`, ignored by `.gitignore` or the global git excludes) cannot reach a commit or the review diff: mention them, do not ask the user to remove them. Remember which ones already existed, so later steps can tell what they created.
 5. Skills available in this session (look at your list of available skills; names may carry a plugin prefix):
    - OMC planning skill (`oh-my-claudecode:omc-plan`, `oh-my-claudecode:plan` or `ralplan`): optional. Without it, planning uses `references/planning-fallback.md`.
    - `tdd` and `code-review`: required by the execution stage, since the context files tell agents to invoke them. If either is missing, warn clearly.
@@ -70,7 +70,7 @@ task-prep preflight
 - workspace: <path>
 - project: <name>   repo: <path>   worktree: <yes | no>
 - git: <branch>, <clean | N uncommitted changes>
-- tool files in repo: <none | list>
+- tool files in repo: <none | list>   ignored: <none | list>
 - OMC planning: <skill name | not found -> fallback planning>
 - tdd: <found as NAME | MISSING>
 - code-review: <found as NAME | MISSING>

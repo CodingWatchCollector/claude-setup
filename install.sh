@@ -46,11 +46,26 @@ register_hook() { # register_hook <event> <command>: add to settings.json unless
   echo "registered $event hook in $settings$note"
 }
 
+global_ignore() { # global_ignore <pattern>: add to git's global excludes file unless present
+  local pat="$1" file
+  file="$(git config --global --path core.excludesFile 2>/dev/null || true)"
+  file="${file:-${XDG_CONFIG_HOME:-$HOME/.config}/git/ignore}"
+  if [ -f "$file" ] && grep -qxF -e "$pat" -e "${pat%/}" "$file"; then
+    return
+  fi
+  mkdir -p "$(dirname "$file")"
+  [ -s "$file" ] && [ -n "$(tail -c1 "$file")" ] && echo >>"$file"
+  echo "$pat" >>"$file"
+  echo "added $pat to global git ignore $file"
+}
+
 command -v jq >/dev/null || { echo "install.sh needs jq: install it and rerun" >&2; exit 1; }
 
 for d in "$repo"/skills/*/; do link "${d%/}" "$claude_dir/skills/$(basename "$d")"; done
 for f in "$repo"/agents/*.md; do link "$f" "$claude_dir/agents/$(basename "$f")"; done
 for f in "$repo"/hooks/*.sh; do link "$f" "$claude_dir/hooks/$(basename "$f")"; done
 register_hook UserPromptSubmit "$claude_dir/hooks/session-title.sh"
+# OMC state dirs that OMC skills create inside repositories: keep them out of git everywhere.
+global_ignore ".omc/"
 
 echo "installed $(cat "$repo/VERSION")"

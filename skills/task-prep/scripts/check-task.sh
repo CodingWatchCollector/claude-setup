@@ -102,9 +102,14 @@ fi
 
 # Repository untouched by planning
 if [ -n "$REPO" ]; then
+  # Ignored tool files (.gitignore or global excludes) cannot reach a commit or the diff: warn only.
   for f in CLAUDE.md .claude .agents .omc; do
     if [ -e "$REPO/$f" ] && ! git -C "$REPO" ls-files --error-unmatch "$f" >/dev/null 2>&1; then
-      bad "untracked tool file inside repository: $f"
+      if git -C "$REPO" check-ignore -q "$f"; then
+        warn "ignored tool file inside repository: $f"
+      else
+        bad "untracked tool file inside repository: $f (not ignored by git)"
+      fi
     fi
   done
   if [ -n "$BASE" ]; then

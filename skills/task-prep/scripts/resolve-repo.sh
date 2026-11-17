@@ -26,11 +26,12 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 HEAD="$(git rev-parse HEAD 2>/dev/null)"
 DIRTY="$(git status --porcelain | wc -l | tr -d ' ')"
 
-# Tool or process files inside the repository that git does not track.
-TOOLS=""
+# Tool or process files inside the repository that git does not track, split into
+# visible ones (git status shows them) and ignored ones (.gitignore or global excludes).
+TOOLS=""; IGNORED=""
 for f in CLAUDE.md .claude .agents .omc; do
   if [ -e "$TOP/$f" ] && ! git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
-    TOOLS="$TOOLS $f"
+    if git check-ignore -q "$f"; then IGNORED="$IGNORED $f"; else TOOLS="$TOOLS $f"; fi
   fi
 done
 
@@ -42,3 +43,4 @@ echo "branch: $BRANCH"
 echo "head: $HEAD"
 echo "uncommitted: $DIRTY"
 echo "tool_files_in_repo:${TOOLS:- none}"
+echo "ignored_tool_files_in_repo:${IGNORED:- none}"

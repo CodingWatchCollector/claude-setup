@@ -20,6 +20,7 @@ It also includes `unslop` (removes AI writing patterns from prose) and `wiki` (a
     git pull && bash install.sh
 
 Needs `jq`. Existing non-matching files are moved aside as `*.bak-<timestamp>`, not overwritten; `settings.json` is backed up the same way before the hook entry is added.
+It also adds `.omc/` to git's global ignore file (`~/.config/git/ignore` unless `core.excludesFile` says otherwise), since OMC skills sometimes create it inside repositories; the task gates let ignored tool files through with a warning.
 Override the Claude folder with `CLAUDE_DIR` (default `~/.claude`).
 
 ## Changing things

@@ -3,6 +3,11 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.6.0
+
+- Tool files in the repository (`CLAUDE.md`, `.claude`, `.agents`, `.omc`) that git ignores, through `.gitignore` or the global excludes, no longer fail `gate.sh` (start, after-review) or `check-task.sh`: they print a warning instead. Untracked tool files that git can see still fail. `resolve-repo.sh` reports them separately as `ignored_tool_files_in_repo`.
+- install.sh adds `.omc/` to git's global excludes file (`core.excludesFile`, default `~/.config/git/ignore`) once, so `.omc/` folders that OMC skills create inside repositories stay out of git and out of the gates.
+
 ## 0.5.0
 
 - New hook `hooks/session-title.sh` (UserPromptSubmit): names the session after the first task-* command typed in it, keeping only the command and its `<project> <TASK-ID>` arguments: `/task-prep fitness-tracker mvp-a <task text> --strict` becomes `/task-prep fitness-tracker mvp-a`. Later prompts keep that name. Per-session markers live in `${XDG_STATE_HOME:-~/.local/state}/claude-session-title/`.
