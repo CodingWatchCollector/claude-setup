@@ -30,6 +30,8 @@ Work only inside this directory: `cd` into it before running anything, or use `g
 
 Run the new tests inside the repository. They must fail because the behavior does not exist yet, ideally on an assertion, not on a crash in unrelated setup. If a test passes before implementation, it tests nothing: fix or remove it.
 
+Every value the AC text names appears in an assertion. Where the AC says equal or exactly, use exact equality (toEqual), not toContainEqual or toMatchObject. Build fixtures with the AC's own values and timestamps.
+
 ## When done
 
 Set `run:acceptance-tests` to `done` in `<TASK_DIR>/status.md` and fill the Acceptance tester report: test files, AC -> test mapping, how each test currently fails. Do not commit or push.

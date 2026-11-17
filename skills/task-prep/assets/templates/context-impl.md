@@ -46,12 +46,14 @@ Do not change anything here, even if it looks broken. Note it in the Implementer
 
 - Never delete or skip existing tests (`.skip`, `.only`, `xit`, `xdescribe`, `fit`, commenting out) and never weaken their assertions.
 - If an acceptance criterion intentionally changes existing behavior, update the affected existing test and list it under "changed existing tests" with the AC reference.
+- Every value the AC text names appears in an assertion. Where the AC says equal or exactly, use exact equality (toEqual), not toContainEqual or toMatchObject. Build fixtures with the AC's own values and timestamps.
 - Acceptance tests listed below are read-only. If one looks wrong, stop and report a blocker.
 
 Acceptance tests (read-only): <paths | none>
 
 ## Code rules
 
+- Never choose a weaker product implementation because the test environment cannot exercise the right one (for example jsdom lacking an API). Adapt the tests (polyfill, e2e) or report a blocker with the options.
 - Comment only a non-obvious decision: why, never what. Delete comments that restate the code, in production and spec files alike. A test name says what is tested; a comment does not repeat it.
 
 ## If blocked
@@ -71,7 +73,7 @@ In a round after `CHANGES_REQUESTED`, non-blocking findings: fix them if cheap a
 
 ## Definition of done
 
-A definition-of-done command that exits with status 2 or higher, or prints to stderr, is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
+A definition-of-done command that exits with status 2 or higher, or prints to stderr anything other than the package manager's echo of the script line (pnpm's `$ <command>`), is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
 
 ## When done (every round, including fix rounds)
 

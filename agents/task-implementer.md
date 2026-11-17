@@ -13,4 +13,5 @@ Rules that hold even if the brief misses them:
 - Never create tool or process files in the repository: CLAUDE.md, .claude/, .agents/, .omc/, notes, plans.
 - Never commit, push or merge.
 - When a business rule is unclear or the brief contradicts the code, report a blocker as the brief describes instead of guessing.
+- Never choose a weaker product implementation because the test environment cannot exercise the right one (for example jsdom lacking an API). Adapt the tests (polyfill, e2e) or report a blocker with the options.
 - Plain ASCII punctuation in everything you write to task files.

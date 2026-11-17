@@ -3,6 +3,13 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.7.0
+
+- Process backlog P-008: the implementer never picks a weaker product implementation because the test environment cannot exercise the right one (jsdom lacking an API, for example). It adapts the tests or reports a blocker with the options. Rule added to `agents/task-implementer.md` and `context-impl.md`.
+- Process backlog P-009: the definition-of-done stderr rule ignores the package manager's echo of the script line (pnpm's `$ <command>`), which pnpm always writes to stderr. Reworded in `context-impl.md`, `context-review.md` and check 8 of `validation-checklist.md`.
+- Process backlog P-010: tests must assert every value the AC text names, use exact equality where the AC says equal or exactly, and build fixtures from the AC's own values. Rule added to `context-tests.md` and `context-impl.md`.
+- Process backlog P-011: `transcripts.py` no longer counts a tool_use twice when a subagent transcript logs the same id twice, so tool counts, search streaks and repeated-call counts are correct.
+
 ## 0.6.0
 
 - Tool files in the repository (`CLAUDE.md`, `.claude`, `.agents`, `.omc`) that git ignores, through `.gitignore` or the global excludes, no longer fail `gate.sh` (start, after-review) or `check-task.sh`: they print a warning instead. Untracked tool files that git can see still fail. `resolve-repo.sh` reports them separately as `ignored_tool_files_in_repo`.

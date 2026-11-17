@@ -71,8 +71,9 @@ def digest(path):
                 if not isinstance(item, dict):
                     continue
                 if item.get("type") == "tool_use":
+                    if item.get("id") not in calls:
+                        order.append(item.get("id"))
                     calls[item.get("id")] = (item.get("name", "?"), item.get("input") or {})
-                    order.append(item.get("id"))
                 elif item.get("type") == "tool_result" and item.get("is_error"):
                     name, inp = calls.get(item.get("tool_use_id"), ("?", {}))
                     errors.append((name, call_summary(name, inp), short(result_text(item.get("content")), 160)))
