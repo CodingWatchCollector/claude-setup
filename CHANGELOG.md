@@ -3,6 +3,11 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.4.0
+
+- New skill task-manual-review: turns the user's review comments into findings in the task-reviewer format and appends them to `findings.md` as `## Manual review (round <n>)` on the latest round, through `scripts/manual.sh` (validates fields, continues F-ids, refuses when an implementation round is ahead of the review). A blocking manual finding after APPROVE adds `verdict: CHANGES_REQUESTED`, so `gate next` starts a fix round. Findings carry `origin: manual`.
+- task-run points to task-manual-review at `next: done`.
+
 ## 0.3.0
 
 - task-retro reads a digest of the subagent transcripts (`retro.sh transcripts`, backed by `scripts/transcripts.py`) and looks for friction the reviewer never sees: long search streaks, failed commands, missing information, repeated calls. Candidates go to the process backlog, to a new `env` bucket (environment drafts in the task folder for the user to take to the repo), or to lessons.

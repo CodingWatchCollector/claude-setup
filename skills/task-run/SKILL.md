@@ -83,7 +83,7 @@ After every step, append one line to the Log section of `status.md`: date, step,
 
 1. `gate set run:review done`
 2. Run `gate summary` and show it.
-3. Tell the user: review the diff yourself, commit when satisfied, then run `/task-retro <project> <TASK-ID>` if available. `findings.md` is its input, do not delete it.
+3. Tell the user: review the diff yourself; to send their own comments back through the loop, run `/task-manual-review <project> <TASK-ID>` and then `/task-run` again. Commit when satisfied, then run `/task-retro <project> <TASK-ID>` if available. `findings.md` is its input, do not delete it.
 4. Stop.
 
 ## next: limit

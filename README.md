@@ -4,6 +4,7 @@ My Claude Code workflow for working on real tasks with AI agents, in three steps
 
 - **task-prep**: turns a task into a plan with testable acceptance criteria, has it checked by a separate plan-reviewer agent, and waits for my approval before any code is written
 - **task-run**: runs fresh agents to write acceptance tests, implement and review, loops through fix and review rounds, and checks every handoff with a deterministic gate script
+- **task-manual-review** (optional, between run and retro): turns my own review comments into findings in the reviewer's format, so the next task-run fixes them in a normal gated round
 - **task-retro**: turns review findings into lessons for future planning and into process fixes, and records metrics, so the next task goes better
 
 It also includes `unslop` (removes AI writing patterns from prose) and `wiki` (a markdown knowledge base that grows across sessions).
