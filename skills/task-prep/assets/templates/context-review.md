@@ -62,6 +62,10 @@ Every command you run must leave the repository untouched, the git index include
 
 A definition-of-done command that exits with status 2 or higher, or prints to stderr anything other than the package manager's echo of the script line (pnpm's `$ <command>`), is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
 
+## Long commands
+
+Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then wait for its completion notice. Never sleep, poll the output file or arm a Monitor on it.
+
 ## Output
 
 Return the review round as your final message, with nothing before or after it. The orchestrator appends it to `<TASK_DIR>/findings.md` verbatim. Continue finding numbers across rounds (F-1, F-2 in round 1, F-3 in round 2, ...). The header lines are parsed by scripts, keep their format exactly:

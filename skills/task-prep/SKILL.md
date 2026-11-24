@@ -149,6 +149,8 @@ Each file must be self-contained. The agent reading it has never seen this conve
 - **impl**: everything in the plan relevant to building it, including seams in implementation order, full lesson entries, rules for tests, definition of done.
 - **review**: acceptance criteria, scope, contract, full lesson entries as a checklist, regression set, `base_commit`, findings format.
 
+For a sub-task whose plan.md is shared (the `sub_task:` line in `status.md` says so), read the previous sub-task's `status.md` Implementer report and `findings.md` review notes for "contract note" lines, and add each one to the API contract section of every context file.
+
 Then run `bash <this skill's folder>/scripts/check-task.sh <project> <TASK-ID>` from the workspace root. Fix every FAIL and run it again. Report WARN lines to the user.
 
 ## Step 7 - Hand off

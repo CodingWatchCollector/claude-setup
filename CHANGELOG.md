@@ -3,6 +3,13 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.8.0
+
+- Process backlog P-015: the implementer's "When done" checks that every handled finding has `status: fixed` with a `fix_note:`, or `status: disputed` with a `reason:`, before setting run:implementation done (`context-impl.md`). When every gate FAIL line names a status.md or findings.md field, the task-run retry prompt says the code is not at fault: fix only those fields, confirm the tree with `git status --porcelain` and keep the previous attempt's definition-of-done results.
+- Process backlog P-014: the plan template marks definition-of-done commands expected to run over 2 minutes as `(long, ~N min)`. `context-impl.md` and `context-review.md` get a "Long commands" rule: run each one as its own background Bash call and wait for the completion notice, never sleep, poll the output or arm a Monitor. The implementer calls SubagentHandback exactly once and ignores late background notices.
+- Process backlog P-016: an unused test binding is either asserted for the behavior it was created for or deleted, never kept alive with an existence check or a restatement of setup data. Rule added to `context-impl.md`.
+- Process backlog P-017: for a sub-task whose plan.md is shared, task-prep reads the previous sub-task's Implementer report and review notes for "contract note" lines and adds them to the API contract section of every context file.
+
 ## 0.7.0
 
 - Process backlog P-008: the implementer never picks a weaker product implementation because the test environment cannot exercise the right one (jsdom lacking an API, for example). It adapts the tests or reports a blocker with the options. Rule added to `agents/task-implementer.md` and `context-impl.md`.

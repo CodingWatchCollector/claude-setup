@@ -64,6 +64,7 @@ approved_on:
 ## Definition of done
 
 <!-- Real commands run inside the repository, for example: cd <REPO> && npm run test -- <paths> -->
+<!-- Mark any command expected to run over 2 minutes as `(long, ~N min)`. -->
 
 ## Acceptance tester
 

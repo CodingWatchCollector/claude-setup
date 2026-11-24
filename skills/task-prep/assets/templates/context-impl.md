@@ -47,6 +47,7 @@ Do not change anything here, even if it looks broken. Note it in the Implementer
 - Never delete or skip existing tests (`.skip`, `.only`, `xit`, `xdescribe`, `fit`, commenting out) and never weaken their assertions.
 - If an acceptance criterion intentionally changes existing behavior, update the affected existing test and list it under "changed existing tests" with the AC reference.
 - Every value the AC text names appears in an assertion. Where the AC says equal or exactly, use exact equality (toEqual), not toContainEqual or toMatchObject. Build fixtures with the AC's own values and timestamps.
+- If a binding is unused, either assert the behavior it was created for or delete it. Never add an assertion that only checks a value exists or repeats setup data.
 - Acceptance tests listed below are read-only. If one looks wrong, stop and report a blocker.
 
 Acceptance tests (read-only): <paths | none>
@@ -75,6 +76,10 @@ In a round after `CHANGES_REQUESTED`, non-blocking findings: fix them if cheap a
 
 A definition-of-done command that exits with status 2 or higher, or prints to stderr anything other than the package manager's echo of the script line (pnpm's `$ <command>`), is an error: report it as an error, never as clean. A "no output expected" check passes only on exit status 1 (for grep: no match).
 
+## Long commands
+
+Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then wait for its completion notice. Never sleep, poll the output file or arm a Monitor on it.
+
 ## When done (every round, including fix rounds)
 
 1. Run every definition-of-done command again. Never reuse results from a previous round.
@@ -87,4 +92,6 @@ A definition-of-done command that exits with status 2 or higher, or prints to st
    ```
    Round is 1 for the first implementation, otherwise the latest `round:` in findings.md plus 1. Test counts come from the output of the test command you just ran. If you decided a business rule (see "If blocked"), write `rules decided: see below` instead of `none`, followed by one line per rule: `- R-<k>: <rule> (where: <file:line>; why: <one line>)`, numbered from 1 in each round. Rules already confirmed by the user in the Blockers section do not count.
 3. Then: AC -> test mapping, changed files, changed existing tests with AC reference, results of every definition-of-done command.
-4. Set `run:implementation` to `done` in the status table. Do not commit or push.
+4. In a fix round, check findings.md: every finding you handled has `status: fixed` and a `fix_note:`, or `status: disputed` and a `reason:`.
+5. Set `run:implementation` to `done` in the status table. Do not commit or push.
+6. Call SubagentHandback exactly once. Background notices that arrive after it need no action and no second handback.

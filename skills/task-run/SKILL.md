@@ -98,6 +98,10 @@ Start one more **fresh** subagent of the same named type, with the same prompt p
 > <FAIL lines from the gate>
 > Fix only what they point at, then finish with the "When done" section of your brief.
 
+For the implementer, when every FAIL line names a field in status.md or findings.md (not a test result, test count or repository change), add:
+
+> The code is not at fault. Fix only the named fields, confirm with `git status --porcelain` that the repository tree matches the previous attempt's report, and keep that attempt's definition-of-done results. If that attempt left no report for this round, or the tree differs, finish with the full "When done" section.
+
 For the reviewer, replace the last sentence with: "Then return the complete review round as your final message, in the Output format of your brief." Its output goes through `record-findings` again; if round <n> was already recorded but failed `after-review`, tell the user instead of retrying, since the recorded round would need a manual fix.
 
 Run the same gate command again. A second failure in the same round: stop, show the gate output, and ask the user how to proceed. Do not try a third time.
