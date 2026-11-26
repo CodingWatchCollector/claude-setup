@@ -3,6 +3,10 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.9.0
+
+- task-run at `next: done` proposes a commit as two code blocks: the commit message (for an editor's source control panel) and a ready-to-paste `git -C <repo> add -A && git -C <repo> commit -F -` command carrying the same message. The message is written from plan.md, the Implementer report and `gate summary`, in the repository's commit style, without reading the diff. task-run still never commits.
+
 ## 0.8.0
 
 - Process backlog P-015: the implementer's "When done" checks that every handled finding has `status: fixed` with a `fix_note:`, or `status: disputed` with a `reason:`, before setting run:implementation done (`context-impl.md`). When every gate FAIL line names a status.md or findings.md field, the task-run retry prompt says the code is not at fault: fix only those fields, confirm the tree with `git status --porcelain` and keep the previous attempt's definition-of-done results.

@@ -84,7 +84,16 @@ After every step, append one line to the Log section of `status.md`: date, step,
 1. `gate set run:review done`
 2. Run `gate summary` and show it.
 3. Tell the user: review the diff yourself; to send their own comments back through the loop, run `/task-manual-review <project> <TASK-ID>` and then `/task-run` again. Commit when satisfied, then run `/task-retro <project> <TASK-ID>` if available. `findings.md` is its input, do not delete it.
-4. Stop.
+4. Propose a commit, as two separate code blocks, so the user can commit from a terminal or paste the message into an editor's source control panel. Do not run either.
+   - **Commit message:** subject line, blank line, body. Write it from the plan.md title (scoped to this sub-task when `status.md` has a `sub_task:` line), the Implementer report (changed files, findings handled) and the `gate summary` diff line. Do not read the diff for it. Match the repository's commit style: its AGENTS.md if it says how to write commits, otherwise `git -C <repo> log --format='%s%n%b' -5`. Without either, use an imperative subject under 72 characters and a short prose body on what changed and why. No task ids, finding ids, round numbers or AI attribution unless the repository's style uses them.
+   - **Commit command:** the same message, ready to paste:
+     ```
+     git -C <repo> add -A && git -C <repo> commit -F - << 'COMMIT_EOF'
+     <commit message>
+     COMMIT_EOF
+     ```
+     `<repo>` is the `repo:` field of `status.md`, as an absolute path. When `gate summary` reports untracked files, list them with `git -C <repo> status --short` under the command so the user sees what `add -A` will include.
+5. Stop.
 
 ## next: limit
 
