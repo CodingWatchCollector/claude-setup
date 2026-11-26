@@ -78,7 +78,7 @@ A definition-of-done command that exits with status 2 or higher, or prints to st
 
 ## Long commands
 
-Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then wait for its completion notice. Never sleep, poll the output file or arm a Monitor on it.
+Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then end your turn with one line naming the command you are waiting for. Make no other tool call until its notice arrives: no echo, sleep, Monitor or ToolSearch. Never poll the output file.
 
 ## When done (every round, including fix rounds)
 
@@ -91,7 +91,7 @@ Run each definition-of-done command marked `(long, ~N min)` as its own Bash call
    rules decided: none
    ```
    Round is 1 for the first implementation, otherwise the latest `round:` in findings.md plus 1. Test counts come from the output of the test command you just ran. If you decided a business rule (see "If blocked"), write `rules decided: see below` instead of `none`, followed by one line per rule: `- R-<k>: <rule> (where: <file:line>; why: <one line>)`, numbered from 1 in each round. Rules already confirmed by the user in the Blockers section do not count.
-3. Then: AC -> test mapping, changed files, changed existing tests with AC reference, results of every definition-of-done command.
+3. Then: AC -> test mapping, changed files, changed existing tests with AC reference, results of every definition-of-done command. For every public export you add under `src/` that this brief does not name, add a line `- contract note: <signature> exported from <file>`, so the next sub-task's brief picks it up. The gate checks this.
 4. In a fix round, check findings.md: every finding you handled has `status: fixed` and a `fix_note:`, or `status: disputed` and a `reason:`.
 5. Set `run:implementation` to `done` in the status table. Do not commit or push.
 6. Call SubagentHandback exactly once. Background notices that arrive after it need no action and no second handback.

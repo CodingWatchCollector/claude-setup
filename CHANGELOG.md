@@ -3,6 +3,12 @@
 One entry per change to a skill, agent or process file. Newest first. Bump `VERSION` with each entry.
 Roll back a bad change with `git revert <commit>` and rerun `bash install.sh`.
 
+## 0.10.0
+
+- Process backlog P-014 (follow-up): the "Long commands" rule in `context-impl.md` and `context-review.md` now says what waiting looks like: after starting the background command, end the turn with one line naming it and make no other tool call (no echo, sleep, Monitor or ToolSearch) until its notice arrives.
+- Process backlog P-021: in `context-review.md`, a `fix:` that moves, extracts or merges code names the rules (R-n) and decisions that apply to that code and how the suggested shape keeps them, or says it cannot and marks the fix optional. A `fix:` that adds a public export tells the implementer to add a `contract note:` line.
+- Process backlog P-022: `gate.sh after-impl` collects the names on added `export` lines under `src/` since `base_commit` (tracked diff and untracked files, test-utils included), drops names already exported under `src/` at `base_commit` and names the brief gives (any word in its API contract section, or as inline code elsewhere in `context-impl.md`), and fails unless every remaining name appears in a `contract note` line of the Implementer report. Re-exports and type-only exports are checked and labelled; `export *` and multi-line `export { ... }` lists print a WARN to check by hand. The contract-note rule moves from per-task briefs into the `context-impl.md` template's "When done" step 3.
+
 ## 0.9.0
 
 - task-run at `next: done` proposes a commit as two code blocks: the commit message (for an editor's source control panel) and a ready-to-paste `git -C <repo> add -A && git -C <repo> commit -F -` command carrying the same message. The message is written from plan.md, the Implementer report and `gate summary`, in the repository's commit style, without reading the diff. task-run still never commits.

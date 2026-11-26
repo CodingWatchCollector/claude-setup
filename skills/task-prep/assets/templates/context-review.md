@@ -64,7 +64,7 @@ A definition-of-done command that exits with status 2 or higher, or prints to st
 
 ## Long commands
 
-Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then wait for its completion notice. Never sleep, poll the output file or arm a Monitor on it.
+Run each definition-of-done command marked `(long, ~N min)` as its own Bash call with `run_in_background: true`, then end your turn with one line naming the command you are waiting for. Make no other tool call until its notice arrives: no echo, sleep, Monitor or ToolSearch. Never poll the output file.
 
 ## Output
 
@@ -88,6 +88,8 @@ problem:
 fix:
 status: open
 ```
+
+A `fix:` that moves, extracts or merges code names the rules (R-n) and decisions that apply to that code and says how the suggested shape keeps them. If it cannot keep one, say so and mark the fix optional. A `fix:` that adds a public export says to add a `contract note:` line to the Implementer report.
 
 Write exactly one verdict. CHANGES_REQUESTED requires at least one open blocking finding; APPROVE requires none.
 

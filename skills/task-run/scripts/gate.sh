@@ -89,6 +89,66 @@ check_tool_files() {
 }
 changed_files() { { git -C "$REPO" diff --name-only "$BASE" -- ; git -C "$REPO" ls-files --others --exclude-standard; } | sort -u; }
 
+# Reads "<file>\t<source line>" and prints "<file> <name> <kind>" for each exported name.
+# kind: value | type | re-export | default | unparsed (the name field then holds a placeholder).
+export_names() {
+  awk -F'\t' '
+    function out(n, k) { sub(/^[ \t]+/, "", n); sub(/[ \t]+$/, "", n); if (k == "unparsed") gsub(/[ \t]+/, "_", n); if (n != "") print f, n, k }
+    { f = $1; l = substr($0, length($1) + 2); sub(/^[ \t]+/, "", l) }
+    l !~ /^export[ \t{*]/ { next }
+    l ~ /^export[ \t]+default[ \t(]/ { out("default", "default"); next }
+    l ~ /^export[ \t]+(type[ \t]+)?\*/ {
+      if (match(l, /\*[ \t]+as[ \t]+[A-Za-z_$][A-Za-z0-9_$]*/)) { n = substr(l, RSTART, RLENGTH); sub(/.*[ \t]/, "", n); out(n, "re-export") }
+      else out("*", "unparsed"); next }
+    l ~ /^export[ \t]*(type[ \t]+)?\{/ {
+      if (index(l, "}") == 0) { out("{", "unparsed"); next }
+      k = (l ~ /\}[ \t]*from[ \t]/) ? "re-export" : ((l ~ /^export[ \t]+type[ \t]/) ? "type" : "value")
+      body = l; sub(/^[^{]*\{/, "", body); sub(/\}.*/, "", body)
+      c = split(body, it, ",")
+      for (i = 1; i <= c; i++) { n = it[i]; ik = k; if (sub(/^[ \t]*type[ \t]+/, "", n) && k == "value") ik = "type"; sub(/.*[ \t]as[ \t]+/, "", n); out(n, ik) }
+      next }
+    {
+      k = (l ~ /^export[ \t]+(declare[ \t]+)?(type|interface)[ \t]/) ? "type" : "value"
+      d = l; sub(/^export[ \t]+(declare[ \t]+)?(abstract[ \t]+)?(async[ \t]+)?(function[ \t]*\*?|const[ \t]+enum|const|let|var|class|enum|type|interface|namespace)[ \t]+/, "", d)
+      if (d == l || !match(d, /^[A-Za-z_$][A-Za-z0-9_$]*/)) { out(substr(l, 1, 40), "unparsed"); next }
+      out(substr(d, RSTART, RLENGTH), k) }'
+}
+# Exported names added under src/ since base_commit, tracked and untracked, minus names already
+# exported under src/ at base_commit (a moved or re-signed export is not new).
+new_exports() {
+  {
+    git -C "$REPO" diff "$BASE" -- src | awk '/^\+\+\+ /{ f = substr($0, 7); next } /^\+/{ print f "\t" substr($0, 2) }'
+    git -C "$REPO" ls-files --others --exclude-standard -- src | while read -r p; do awk -v f="$p" '{ print f "\t" $0 }' "$REPO/$p"; done
+  } | export_names | sort -u | while read -r p n k; do
+    if [ "$k" != unparsed ] && [ "$k" != default ] &&
+       git -C "$REPO" grep -q -w -e "$(printf '%s' "$n" | sed 's/[$]/\\$/g')" --and -e '^[[:space:]]*export' "$BASE" -- src 2>/dev/null; then continue; fi
+    echo "$p $n $k"
+  done
+}
+# Every new export must be named in the brief (word in its API contract section, or as `code`
+# anywhere) or in a "contract note" line of the Implementer report. Default exports match by file path.
+check_exports() {
+  CI="$DIR/context-impl.md"; [ -f "$CI" ] || { bad "context-impl.md missing, cannot check new exports"; return; }
+  API="$(awk 'index($0,"## API contract")==1{f=1;next} /^## /{f=0} f' "$CI")"
+  NOTES="$(section "Implementer report" | grep -i 'contract note')"
+  NE="$(new_exports)"; [ -n "$NE" ] || { ok "no new exports under src/"; return; }
+  N_API=0; BRIEF=""; NOTED=0; MISSING=""; UNP=""
+  while read -r p n k; do
+    if [ "$k" = unparsed ]; then UNP="$UNP $p($n)"; continue; fi
+    w="$n"; [ "$k" = default ] && w="$p"
+    if [ "$k" != default ] && printf '%s\n' "$API" | grep -qw -F -- "$w"; then N_API=$((N_API+1))
+    elif [ "$k" = default ] && printf '%s\n' "$API" | grep -q -F -- "$w"; then N_API=$((N_API+1))
+    elif [ "$k" != default ] && grep -qF -e "\`$w\`" -e "\`$w(" -e "\`$w<" -e "\`$w." "$CI"; then BRIEF="$BRIEF $n"
+    elif [ "$k" != default ] && printf '%s\n' "$NOTES" | grep -qw -F -- "$w"; then NOTED=$((NOTED+1))
+    elif [ "$k" = default ] && printf '%s\n' "$NOTES" | grep -q -F -- "$w"; then NOTED=$((NOTED+1))
+    else MISSING="$MISSING $n ($p, $k);"; fi
+  done <<< "$NE"
+  [ -n "$UNP" ] && warn "export lines the gate cannot name, check them by hand:$UNP"
+  [ -n "$BRIEF" ] && ok "new exports named in the brief outside its API contract:$BRIEF"
+  if [ -z "$MISSING" ]; then ok "new exports covered: $N_API in API contract, $NOTED by contract notes"
+  else bad "status.md Implementer report lacks a '- contract note: <signature> exported from <file>' line for new export(s) the brief does not name:${MISSING%;}"; fi
+}
+
 REPO="$(field repo)"; BASE="$(field base_commit)"
 
 case "$CMD" in
@@ -200,6 +260,7 @@ after-impl)
   PAT='(\b(it|test|describe)\.(skip|only)\(|\b(xit|xdescribe|xtest|fit|fdescribe)\()'
   FOCUS="$( { git -C "$REPO" diff "$BASE" | grep -E "^\+.*$PAT"; git -C "$REPO" ls-files --others --exclude-standard | while read -r f; do grep -HnE "$PAT" "$REPO/$f" 2>/dev/null; done; } || true)"
   [ -z "$FOCUS" ] && ok "no skipped or focused tests added" || { bad "skipped or focused tests added:"; echo "$FOCUS" | head -5 | sed 's/^/     /'; }
+  check_exports
   if [ "$N" -gt 1 ]; then
     OPEN="$(findings | awk '$2=="blocking" && $3=="open"{print $1}' | tr '\n' ' ')"
     if [ "$(nb_decision $((N-1)))" = "fix" ]; then OPEN="$OPEN $(open_nb_in_round $((N-1)))"; OPEN="$(echo $OPEN)"; fi
